@@ -32,7 +32,7 @@ class PID(object):
                 self.int_val = self.int_max
             elif integral < -self.int_max: 
                 self.int_val = -self.int_max               
-            else
+            else:
                 self.int_val = integral
 
         self.last_error = error
