@@ -44,14 +44,12 @@ class Controller(object):
     		self.throttle_controller.reset()
        		return 0., 0., 0.
 		
-		current_vel = self.vel_LPF.filt(current_vel)
+        current_vel = self.vel_LPF.filt(current_vel)
+        steering = 0
+        steering = self.yaw_controller.get_steering(linear_vel, angular_vel, current_vel)
 
-		steering = self.yaw_controller.get_steering(linear_vel, angular_vel, current_vel)
-
-
-        rospy.loginfo("Target Angular vel: %f", angular_vel)
-        rospy.loginfo("Target Velocity : %f",  linear_vel)
-        rospy.loginfo("Current Velocity : %f", current_vel)
+        # rospy.loginfo("Target Velocity : %f",  linear_vel)
+        # rospy.loginfo("Current Velocity : %f", current_vel)
 
         vel_error = linear_vel - current_vel
         self.last_vel = current_vel
@@ -64,7 +62,7 @@ class Controller(object):
 
         brake = 0
 
-		# add dead band inputs
+		# # add dead band inputs
         if linear_vel == 0 and current_vel < 0.1:
             throttle = 0
             brake = 400 # torque input of 400 Nm to stop vehicle
@@ -73,7 +71,12 @@ class Controller(object):
             decel = max(vel_error, self.decel_limit)
             brake = abs(decel)*self.vehicle_mass*self.wheel_radius # R * m * decel
 
-	    return steering, brake, throttle
+        rospy.loginfo("Control")
 
+        rospy.loginfo("steering: %f", steering)
+        rospy.loginfo("throttle: %f", throttle)
+        rospy.loginfo("brake: %f", brake)
+
+        return steering, brake, throttle
 
 
