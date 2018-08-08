@@ -96,25 +96,6 @@ class DBWNode(object):
                                                                     self.dbw_enabled, 
                                                                     self.linear_vel,
                                                                     self.angular_vel)
-                # try:
-                    # self.throttle, self.brake, self.steering = self.controller.control(self.current_vel,
-                    #                                                 self.dbw_enabled, 
-                    #                                                 self.linear_vel,
-                    #                                                 self.angular_vel)
-                # except:
-                  # rospy.loginfo("Target Angular vel: %f", self.angular_vel)
-                  # rospy.loginfo("Target Velocity : %f",   self.linear_vel)
-                  # rospy.loginfo("Current Velocity : %f",  self.current_vel) 
-
-            rospy.loginfo("throttle: %f", self.throttle)
-            rospy.loginfo("brake : %f",   self.brake)
-            rospy.loginfo("steering : %f",  self.steering) 
-                                   
-                #print(self.current_vel)
-                #print(self.dbw_enabled)
-                #print(self.linear_vel)
-                #print(self.angular_vel)
-
             if self.dbw_enabled:
                 #pass
                 self.publish(self.throttle, self.brake, self.steering)
