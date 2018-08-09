@@ -134,8 +134,6 @@ class DBWNode(object):
 
         waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in final_waypoints]
 
-        # Rotate the coordinates from the inertial frame to the car's coordinate frame
-
         # Shift the points to the starting wp
         waypoints_2d_shift = waypoints_2d - np.array([starting_wp.x, starting_wp.y])
 

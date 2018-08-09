@@ -24,8 +24,8 @@ class Controller(object):
         self.yaw_controller = YawController(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle)
 
         # throttle gains
-        kp_thr = 0.5
-        ki_thr = 0.05
+        kp_thr = 0.2
+        ki_thr = 0.01
         kd_thr = 0.1
         minThr = self.decel_limit
         maxThr = self.accel_limit*0.4
@@ -33,8 +33,8 @@ class Controller(object):
         self.throttle_controller = PID(kp_thr, ki_thr, kd_thr, minThr, maxThr)
 
         kp_str = 0.2
-        ki_str = 0.01
-        kd_str = 0.1
+        ki_str = 0.001
+        kd_str = 0.2
         minStr = -max_steer_angle
         maxStr = max_steer_angle
 
@@ -64,8 +64,8 @@ class Controller(object):
         self.last_time = current_time
 
         steering = 0
-        steer_FF = self.yaw_controller.get_steering(linear_vel, angular_vel, current_vel)
-        steering = self.steering_controller.step(cte, dt) + steer_FF
+        #steer_FF = self.yaw_controller.get_steering(linear_vel, angular_vel, current_vel)
+        steering = self.steering_controller.step(cte, dt) #+ steer_FF
         
         throttle = self.throttle_controller.step(vel_error, dt)
 
