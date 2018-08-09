@@ -24,16 +24,16 @@ class Controller(object):
         self.yaw_controller = YawController(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle)
 
         # throttle gains
-        kp = 0.2
+        kp = 0.25
         ki = 0.1
         kd = 0
         minThr = 0
-        maxThr = 0.2
-        # Thorttle controllre
+        maxThr = 0.25
+        # Thorttle controller
         self.throttle_controller = PID(kp, ki, kd, minThr, maxThr)
 
         # LP filter
-        tau = 0.5 # 1/(2*pi*tau) = fcutoff
+        tau = 0.6 # 1/(2*pi*tau) = fcutoff
         ts = 0.02 # sample period
         self.vel_LPF = LowPassFilter(tau, ts)
 
@@ -47,9 +47,6 @@ class Controller(object):
         current_vel = self.vel_LPF.filt(current_vel)
         steering = 0
         steering = self.yaw_controller.get_steering(linear_vel, angular_vel, current_vel)
-
-        # rospy.loginfo("Target Velocity : %f",  linear_vel)
-        # rospy.loginfo("Current Velocity : %f", current_vel)
 
         vel_error = linear_vel - current_vel
         self.last_vel = current_vel
@@ -66,16 +63,10 @@ class Controller(object):
         if linear_vel == 0 and current_vel < 0.1:
             throttle = 0
             brake = 400 # torque input of 400 Nm to stop vehicle
-        elif throttle < 0.1 and vel_error < 0:
+        elif throttle < 0.15 and vel_error < 0:
             throttle = 0
             decel = max(vel_error, self.decel_limit)
             brake = abs(decel)*self.vehicle_mass*self.wheel_radius # R * m * decel
-
-        rospy.loginfo("Control")
-
-        rospy.loginfo("steering: %f", steering)
-        rospy.loginfo("throttle: %f", throttle)
-        rospy.loginfo("brake: %f", brake)
 
         return steering, brake, throttle
 
