@@ -28,13 +28,13 @@ class Controller(object):
         ki_thr = 0.01
         kd_thr = 0.1
         minThr = self.decel_limit
-        maxThr = self.accel_limit*0.4
+        maxThr = self.accel_limit*0.3
         # Throttle controller
         self.throttle_controller = PID(kp_thr, ki_thr, kd_thr, minThr, maxThr)
 
         kp_str = 0.2
         ki_str = 0.001
-        kd_str = 0.2
+        kd_str = 0.1
         minStr = -max_steer_angle
         maxStr = max_steer_angle
 
@@ -42,7 +42,7 @@ class Controller(object):
         self.steering_controller = PID(kp_str, ki_str, kd_str, minStr, maxStr)
 
         # LP filter
-        tau = 0.4 # 1/(2*pi*tau) = fcutoff
+        tau = 0.5 # 1/(2*pi*tau) = fcutoff
         ts = 0.02 # sample period
         self.vel_LPF = LowPassFilter(tau, ts)
 
@@ -57,8 +57,8 @@ class Controller(object):
         current_vel = self.vel_LPF.filt(current_vel)
 
         vel_error = linear_vel - current_vel
-        self.last_vel = current_vel
-
+        self.last_vel = current_vel      
+        
         current_time = rospy.get_time()
         dt =  current_time - self.last_time
         self.last_time = current_time
