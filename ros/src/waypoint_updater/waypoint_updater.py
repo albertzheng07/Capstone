@@ -5,7 +5,7 @@ from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
 from scipy.spatial import KDTree
 import numpy as np
-
+from std_msgs.msg import Int32
 import math
 
 '''
@@ -23,8 +23,8 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
-
+LOOKAHEAD_WPS = 500 # Number of waypoints we will publish. You can change this number
+MAX_DECEL = 2
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -33,10 +33,10 @@ class WaypointUpdater(object):
 
         # TODO: Add other member variables you need below
         self.pose = None
-        self.base_waypoints = None
         self.waypoints_2d = None
         self.waypoint_tree = None
         self.base_lane = None
+        self.stopline_wp_idx = -1
 
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -50,7 +50,7 @@ class WaypointUpdater(object):
     def loop(self):
         rate = rospy.Rate(50)
         while not rospy.is_shutdown():
-            if self.pose and self.base_waypoints:
+            if self.pose and self.base_lane:
                 closest_waypoint_idx = self.get_closest_waypoint_idx()
                 self.publish_waypoints(closest_waypoint_idx)
             rate.sleep()   
@@ -90,8 +90,10 @@ class WaypointUpdater(object):
 
         if self.stopline_wp_idx == -1 or (self.stopline_wp_idx >= farthest_idx):
             lane.waypoints = base_waypoints
-        else
-            lane.waypoints = self.decelerate_waypoints(base_waypoints, closest_idx)        
+        else:
+            lane.waypoints = self.decelerate_waypoints(base_waypoints, closest_idx) 
+
+        return lane       
 
     def decelerate_waypoints(self, waypoints, closest_idx):
         temp = []
@@ -115,7 +117,7 @@ class WaypointUpdater(object):
         self.pose = msg
 
     def waypoints_cb(self, waypoints):
-        self.base_waypoints = waypoints
+        self.base_lane = waypoints
         if not self.waypoints_2d:
             self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in waypoints.waypoints]
             self.waypoint_tree = KDTree(self.waypoints_2d)
