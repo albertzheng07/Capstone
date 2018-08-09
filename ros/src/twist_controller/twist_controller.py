@@ -24,13 +24,22 @@ class Controller(object):
         self.yaw_controller = YawController(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle)
 
         # throttle gains
-        kp = 0.25
-        ki = 0.1
-        kd = 0
-        minThr = 0
-        maxThr = 0.25
-        # Thorttle controller
-        self.throttle_controller = PID(kp, ki, kd, minThr, maxThr)
+        kp_thr = 0.5
+        ki_thr = 0.05
+        kd_thr = 0.1
+        minThr = self.decel_limit
+        maxThr = self.accel_limit*0.4
+        # Throttle controller
+        self.throttle_controller = PID(kp_thr, ki_thr, kd_thr, minThr, maxThr)
+
+        kp_str = 0.2
+        ki_str = 0.01
+        kd_str = 0.1
+        minStr = -max_steer_angle
+        maxStr = max_steer_angle
+
+        # Steering controller
+        self.steering_controller = PID(kp_str, ki_str, kd_str, minStr, maxStr)
 
         # LP filter
         tau = 0.6 # 1/(2*pi*tau) = fcutoff
@@ -39,14 +48,16 @@ class Controller(object):
 
         self.last_time = rospy.get_time()
 
-    def control(self, current_vel, dbw_enabled, linear_vel, angular_vel):
+    def control(self, current_vel, dbw_enabled, linear_vel, angular_vel, cte):
     	if not dbw_enabled:
-    		self.throttle_controller.reset()
-       		return 0., 0., 0.
+            self.throttle_controller.reset()
+            self.steering_controller.reset()
+            return 0., 0., 0.
 		
         current_vel = self.vel_LPF.filt(current_vel)
         steering = 0
-        steering = self.yaw_controller.get_steering(linear_vel, angular_vel, current_vel)
+        steer_FF = self.yaw_controller.get_steering(linear_vel, angular_vel, current_vel)
+        steering = self.steering_controller.step(cte, dt) + steer_FF
 
         vel_error = linear_vel - current_vel
         self.last_vel = current_vel
@@ -63,10 +74,10 @@ class Controller(object):
         if linear_vel == 0 and current_vel < 0.1:
             throttle = 0
             brake = 400 # torque input of 400 Nm to stop vehicle
-        elif throttle < 0.15 and vel_error < 0:
-            throttle = 0
-            decel = max(vel_error, self.decel_limit)
+        elif throttle < 0:
+            decel = max(throttle, self.decel_limit)
             brake = abs(decel)*self.vehicle_mass*self.wheel_radius # R * m * decel
+            throttle = 0
 
         return steering, brake, throttle
 
