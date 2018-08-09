@@ -98,7 +98,7 @@ class DBWNode(object):
             # if <dbw is enabled>:
             #   self.publish(throttle, brake, steer)
             if not None in (self.final_waypoints, self.current_pose):
-                self.cte = get_cte(self.final_waypoints, self.current_pose)
+                self.cte = self.get_cte(self.final_waypoints, self.current_pose)
 
             if not None in (self.current_vel, self.angular_vel_cmd, self.linear_vel_cmd, self.cte):
                 self.steering, self.brake, self.throttle = self.controller.control(self.current_vel,
@@ -128,11 +128,11 @@ class DBWNode(object):
     def current_pose_cb(self, msg):
         self.current_pose = msg
  
-    def get_cte(final_waypoints, current_pose):
+    def get_cte(self, final_waypoints, current_pose):
 
         starting_wp = final_waypoints[0].pose.pose.position
 
-        waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in final_waypoints.waypoints]
+        waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in final_waypoints]
 
         # Rotate the coordinates from the inertial frame to the car's coordinate frame
 
@@ -150,7 +150,7 @@ class DBWNode(object):
         waypoints_heading = np.dot(waypoints_2d_shift, rot_mat)
 
         # Fit a polynomial to the set of the heading of the offset waypoint frame
-        coefficients = np.polyfit(waypoints_car[:, 0], waypoints_car[:, 1], 2)
+        coefficients = np.polyfit(waypoints_heading[:, 0], waypoints_heading[:, 1], 2)
 
         # Transform the current pose of the car to be in the waypoint set's coordinate system
         shifted_pose = np.array([current_pose.pose.position.x - starting_wp.x, current_pose.pose.position.y - starting_wp.y])

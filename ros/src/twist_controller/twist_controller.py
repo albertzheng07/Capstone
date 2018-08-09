@@ -42,7 +42,7 @@ class Controller(object):
         self.steering_controller = PID(kp_str, ki_str, kd_str, minStr, maxStr)
 
         # LP filter
-        tau = 0.6 # 1/(2*pi*tau) = fcutoff
+        tau = 0.4 # 1/(2*pi*tau) = fcutoff
         ts = 0.02 # sample period
         self.vel_LPF = LowPassFilter(tau, ts)
 
@@ -55,9 +55,6 @@ class Controller(object):
             return 0., 0., 0.
 		
         current_vel = self.vel_LPF.filt(current_vel)
-        steering = 0
-        steer_FF = self.yaw_controller.get_steering(linear_vel, angular_vel, current_vel)
-        steering = self.steering_controller.step(cte, dt) + steer_FF
 
         vel_error = linear_vel - current_vel
         self.last_vel = current_vel
@@ -66,6 +63,10 @@ class Controller(object):
         dt =  current_time - self.last_time
         self.last_time = current_time
 
+        steering = 0
+        steer_FF = self.yaw_controller.get_steering(linear_vel, angular_vel, current_vel)
+        steering = self.steering_controller.step(cte, dt) + steer_FF
+        
         throttle = self.throttle_controller.step(vel_error, dt)
 
         brake = 0
