@@ -25,16 +25,16 @@ class Controller(object):
 
         # throttle gains
         kp_thr = 0.5
-        ki_thr = 0.0
+        ki_thr = 0.02
         kd_thr = 0.1
         minThr = self.decel_limit
-        maxThr = self.accel_limit*0.4
+        maxThr = self.accel_limit*0.3
         # Throttle controller
         self.throttle_controller = PID(kp_thr, ki_thr, kd_thr, minThr, maxThr)
 
-        kp_str = 0.2
+        kp_str = 0.1
         ki_str = 0.0
-        kd_str = 0.1
+        kd_str = 0.05
         minStr = -max_steer_angle
         maxStr = max_steer_angle
 
@@ -57,10 +57,7 @@ class Controller(object):
         current_vel = self.vel_LPF.filt(current_vel)
 
         vel_error = linear_vel - current_vel
-        self.last_vel = current_vel
-
-        rospy.loginfo("velocity error = %f", vel_error)
-        rospy.loginfo("cte = %f", cte)        
+        self.last_vel = current_vel      
         
         current_time = rospy.get_time()
         dt =  current_time - self.last_time

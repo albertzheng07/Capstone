@@ -106,6 +106,9 @@ class DBWNode(object):
                                                                     self.linear_vel_cmd,
                                                                     self.angular_vel_cmd,
                                                                     self.cte)
+#                 rospy.loginfo("velocity error = %f", self.linear_vel_cmd-self.current_vel)
+#                 rospy.loginfo("cte = %f", self.cte) 
+                
             if self.dbw_enabled:
                 #pass
                 self.publish(self.throttle, self.brake, self.steering)
