@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Float64
 from dbw_mkz_msgs.msg import ThrottleCmd, SteeringCmd, BrakeCmd, SteeringReport
 from geometry_msgs.msg import TwistStamped
 import math
@@ -54,7 +54,9 @@ class DBWNode(object):
                                             ThrottleCmd, queue_size=1)
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
-
+        self.cte_pub = rospy.Publisher('/cte',
+                                         Float64, queue_size=1)
+        
         # TODO: Create `Controller` object
         self.controller = Controller(vehicle_mass = vehicle_mass,
                                      fuel_capacity = fuel_capacity,
@@ -180,6 +182,8 @@ class DBWNode(object):
         bcmd.pedal_cmd_type = BrakeCmd.CMD_TORQUE
         bcmd.pedal_cmd = brake
         self.brake_pub.publish(bcmd)
+        
+        self.cte_pub.publish(self.cte)
 
 
 if __name__ == '__main__':

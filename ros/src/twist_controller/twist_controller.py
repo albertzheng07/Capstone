@@ -64,8 +64,8 @@ class Controller(object):
         self.last_time = current_time
 
         steering = 0
-        #steer_FF = self.yaw_controller.get_steering(linear_vel, angular_vel, current_vel)
-        steering = self.steering_controller.step(cte, dt) #+ steer_FF
+        steer_FF = self.yaw_controller.get_steering(linear_vel, angular_vel, current_vel)
+        steering = steer_FF + self.steering_controller.step(cte, dt) #+ steer_FF
         
         throttle = self.throttle_controller.step(vel_error, dt)
 
