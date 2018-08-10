@@ -77,9 +77,9 @@ class DBWNode(object):
         self.final_waypoints = None
 
         # TODO: Subscribe to all the topics you need tos
-        rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_cb)
-        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb)
-        rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb)
+        rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_cb, queue_size=1)
+        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb, queue_size=1)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.velocity_cb, queue_size=1)
         rospy.Subscriber('final_waypoints', Lane, self.final_waypoints_cb, queue_size=1)
         rospy.Subscriber('/current_pose', PoseStamped, self.current_pose_cb, queue_size=1)
         
@@ -158,7 +158,7 @@ class DBWNode(object):
         rotated_pose = np.dot(shifted_pose, rot_mat)
 
         path_y = np.polyval(coefficients, rotated_pose[0])
-        cte = path_y - rotated_pose[1]
+        cte =  path_y - rotated_pose[1]
 
         return cte
 
