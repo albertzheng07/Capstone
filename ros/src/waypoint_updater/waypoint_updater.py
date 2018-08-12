@@ -59,7 +59,7 @@ class WaypointUpdater(object):
     def get_closest_waypoint_idx(self):
         x = self.pose.pose.position.x
         y = self.pose.pose.position.y
-        if self.waypoint_tree is not None:
+        if self.waypoint_tree:
             closest_idx = self.waypoint_tree.query([x, y],1)[1]
         else:
             return None
@@ -98,7 +98,7 @@ class WaypointUpdater(object):
                 lane.waypoints = base_waypoints
             else:
                 rospy.loginfo("Generating Traffic Light Decel WPs")
-                rospy.loginfo("StopLine Idx = %f", self.stopline_wp_idx)
+                #rospy.loginfo("StopLine Idx = %f", self.stopline_wp_idx)
                 lane.waypoints = self.decelerate_waypoints(base_waypoints, closest_idx)
         else:
             return None
@@ -108,27 +108,31 @@ class WaypointUpdater(object):
     def decelerate_waypoints(self, waypoints, closest_idx):
         temp = []
 
-        rospy.loginfo("StopLine Index %d", self.stopline_wp_idx)            
-        rospy.loginfo("Closest Index %d", closest_idx)            
+        #rospy.loginfo("StopLine Index %d", self.stopline_wp_idx)            
+        #rospy.loginfo("Closest Index %d", closest_idx)            
 
         for i, wp in enumerate(waypoints):
             p = Waypoint() # create new decel waypoint
             p.pose = wp.pose
 
-            rospy.loginfo("WP %d", i)            
-           
-            stop_idx = max(self.stopline_wp_idx - closest_idx, 0) # set stop index 2 wps back from stop index to decelerate sooner
-            if i < stop_idx:
-                dist = self.distance(waypoints, i, stop_idx)
-                vel = math.sqrt(2* MAX_DECEL * dist)
-                if vel < 1:
-                    vel = 0
-                rospy.loginfo("dist = %f", dist)                
-            else:
+            stop_idx = max(self.stopline_wp_idx - closest_idx - 5, 0) # set stop index 2 wps back from stop index to decelerate sooner
+            #if i < stop_idx:
+                #rospy.loginfo("dist = %f", dist)  
+            #try:
+            dist = self.distance(waypoints, i, stop_idx)
+            #except:
+#                 rospy.loginfo("WP %d", i)            
+#                 rospy.loginfo("stop_idx %d", stop_idx)
+#                 rospy.loginfo("self.stopline_wp_idx %d", self.stopline_wp_idx)
+#                 rospy.loginfo("stop_idx %d", closest_idx)
+#                 rospy.loginfo("len(waypoints) %d", len(waypoints))                
+              
+            vel = math.sqrt(2* MAX_DECEL * dist)
+            if vel < 1:
                 vel = 0
                 
             p.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x) # take lower value between original waypoint speed and decel
-            rospy.loginfo("Linear Vel Cmd = %f", p.twist.twist.linear.x)           
+            #rospy.loginfo("Linear Vel Cmd = %f", p.twist.twist.linear.x)           
             temp.append(p)
             
 
