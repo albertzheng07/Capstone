@@ -94,7 +94,8 @@ class WaypointUpdater(object):
         if self.stopline_wp_idx == -1 or (self.stopline_wp_idx >= farthest_idx):
             lane.waypoints = base_waypoints
         else:
-            lane.waypoints = self.decelerate_waypoints(base_waypoints, closest_idx) 
+            rospy.loginfo("Generating Traffic Light Decel WPs")
+            lane.waypoints = self.decelerate_waypoints(base_waypoints, closest_idx)
 
         return lane       
 
@@ -113,6 +114,9 @@ class WaypointUpdater(object):
 
             p.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x) # take lower value between original waypoint speed and decel
             temp.append(p)
+            if i < stop_idx
+                rospy.loginfo("WP %d", i)            
+                rospy.loginfo("Linear Vel Cmd", p.twist.twist.linear.x)
 
         return temp
 
