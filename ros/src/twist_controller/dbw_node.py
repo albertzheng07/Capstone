@@ -135,32 +135,38 @@ class DBWNode(object):
  
     def get_cte(self, final_waypoints, current_pose):
 
-        starting_wp = final_waypoints[0].pose.pose.position
+        if len(final_waypoints) > 3:
+            starting_wp = final_waypoints[0].pose.pose.position
 
-        waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in final_waypoints]
+            waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in final_waypoints]
 
-        # Shift the points to the starting wp
-        waypoints_2d_shift = waypoints_2d - np.array([starting_wp.x, starting_wp.y])
+            # Shift the points to the starting wp
+            waypoints_2d_shift = waypoints_2d - np.array([starting_wp.x, starting_wp.y])
 
-        # Derive the yaw from a set of the waypoints
-        num_wpts = 10
-        wp_yaw = np.arctan2(waypoints_2d_shift[num_wpts, 1], waypoints_2d_shift[num_wpts, 0])
-        rot_mat = np.array([
-                [np.cos(wp_yaw), -np.sin(wp_yaw)],
-                [np.sin(wp_yaw), np.cos(wp_yaw)]
-            ])
+            # Derive the yaw from a set of the waypoints
+            if len(final_waypoints) > 10:
+                num_wpts = 10
+            else:
+                num_wpts = len(final_waypoints)/2
+            wp_yaw = np.arctan2(waypoints_2d_shift[num_wpts, 1], waypoints_2d_shift[num_wpts, 0])
+            rot_mat = np.array([
+                    [np.cos(wp_yaw), -np.sin(wp_yaw)],
+                    [np.sin(wp_yaw), np.cos(wp_yaw)]
+                ])
 
-        waypoints_heading = np.dot(waypoints_2d_shift, rot_mat)
+            waypoints_heading = np.dot(waypoints_2d_shift, rot_mat)
 
-        # Fit a polynomial to the set of the heading of the offset waypoint frame
-        coefficients = np.polyfit(waypoints_heading[:, 0], waypoints_heading[:, 1], 2)
+            # Fit a polynomial to the set of the heading of the offset waypoint frame
+            coefficients = np.polyfit(waypoints_heading[:, 0], waypoints_heading[:, 1], 2)
 
-        # Transform the current pose of the car to be in the waypoint set's coordinate system
-        shifted_pose = np.array([current_pose.pose.position.x - starting_wp.x, current_pose.pose.position.y - starting_wp.y])
-        rotated_pose = np.dot(shifted_pose, rot_mat)
+            # Transform the current pose of the car to be in the waypoint set's coordinate system
+            shifted_pose = np.array([current_pose.pose.position.x - starting_wp.x, current_pose.pose.position.y - starting_wp.y])
+            rotated_pose = np.dot(shifted_pose, rot_mat)
 
-        path_y = np.polyval(coefficients, rotated_pose[0])
-        cte =  path_y - rotated_pose[1]
+            path_y = np.polyval(coefficients, rotated_pose[0])
+            cte =  path_y - rotated_pose[1]
+        else:
+            cte = 0
 
         return cte
 
