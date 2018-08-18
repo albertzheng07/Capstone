@@ -35,9 +35,10 @@ class TLClassifier(object):
 
         with self.graph.as_default():
             predictions = self.model.predict(resized.reshape((1, self.height, self.width, self.channels)))
-            color =  predictions.tolist().index(np.max(predictions)) # get color prediction
+            color =  predictions[0].tolist().index(np.max(predictions[0])) # get color prediction
 
             rospy.logwarn("predictions ",predictions)
+            rospy.logwarn("predictions[0]",predictions[0])            
             rospy.logwarn("color = ",color)
 
             if color == TrafficLight.RED: 
