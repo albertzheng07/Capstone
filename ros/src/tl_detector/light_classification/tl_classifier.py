@@ -4,6 +4,7 @@ import tensorflow as tf
 import numpy as np
 from keras.models import load_model
 import rospkg
+import rospy
 
 class TLClassifier(object):
     def __init__(self, is_site, width, height, channels=3):
@@ -37,8 +38,8 @@ class TLClassifier(object):
             predictions = self.model.predict(resized.reshape((1, self.height, self.width, self.channels)))
             color =  predictions[0].tolist().index(np.max(predictions[0])) # get color prediction
 
-            rospy.logwarn("predictions ",predictions)
-            rospy.logwarn("predictions[0]",predictions[0])            
+            rospy.logwarn("predictions = ",predictions)
+            rospy.logwarn("predictions[0] = ",predictions[0])            
             rospy.logwarn("color = ",color)
 
             if color == TrafficLight.RED: 
