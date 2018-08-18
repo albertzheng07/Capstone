@@ -38,9 +38,8 @@ class TLClassifier(object):
             predictions = self.model.predict(resized.reshape((1, self.height, self.width, self.channels)))
             color =  predictions[0].tolist().index(np.max(predictions[0])) # get color prediction
 
-            print("predictions = ",predictions)
-            print("predictions[0] = ",predictions[0])            
-            print("color = ",color)
+            # print("predictions[0] = ",predictions[0])            
+            # print("color = ",color)
 
             if color == TrafficLight.RED: 
                 return TrafficLight.RED        
