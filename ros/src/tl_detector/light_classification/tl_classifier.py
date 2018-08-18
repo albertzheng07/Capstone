@@ -1,13 +1,23 @@
 from styx_msgs.msg import TrafficLight
+import cv2
+import tensorflow as tf
+import numpy as np
+from keras.models import load_model
+import rospkg
 
 class TLClassifier(object):
-    def __init__(width, height, channels=3, is_site):
+    def __init__(self, is_site, width, height, channels=3):
         self.width = width
         self.height = height
+        self.channels = channels
+
+        r = rospkg.RosPack()
+        path = r.get_path('tl_detector')
+        
         if is_site:
-            self.model = load('classifier_carla.h5')
+            self.model = load_model(path + '/light_classification/classifier_carla.h5')
         else:    
-            self.model = load('classifier_sim.h5')    
+            self.model = load_model(path + '/light_classification/classifier_sim.h5')    
         self.graph = tf.get_default_graph()
 
     def get_classification(self, image):
