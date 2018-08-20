@@ -46,7 +46,7 @@
 
 #         return TrafficLight.UNKNOWN
 
-
+from styx_msgs.msg import TrafficLight
 import tensorflow as tf
 import numpy as np
 import cv2
@@ -107,9 +107,10 @@ class GraphDetection():
 class TLClassifier(object):
     def __init__(self, is_site):
         if is_site:
-            self.model = load_model('light_classification/classifier_carla.h5')
+            self.classifier = load_model('light_classification/classifier_carla.h5')
         else:    
-            self.model = load_model('light_classification/classifier_sim.h5')   
+            self.classifier = load_model('light_classification/classifier_sim.h5')
+        self.graph = tf.get_default_graph()            
         self.detection = GraphDetection()     
         
     def get_classification(self, image):
@@ -119,15 +120,15 @@ class TLClassifier(object):
         # Get boxes for traffic lights
         boxes, scores, classes = self.get_boxes_for_traffic_lights(img_expanded)
 
-        height, width, channels = image.shape
-        
-        box_coords = self.to_image_coords(boxes, height, width)
+        if len(scores) > 0:
+            max_ind = scores.tolist().index(max(scores))
+            height, width, channels = image.shape       
+            box_coords = self.to_image_coords(boxes[max_ind], height, width)
 
-        for i in range(len(boxes)):
-            ymin = int(box_coords[i][0])
-            xmin = int(box_coords[i][1])
-            ymax = int(box_coords[i][2])
-            xmax = int(box_coords[i][3])
+            ymin = int(box_coords[0])
+            xmin = int(box_coords[1])
+            ymax = int(box_coords[2])
+            xmax = int(box_coords[3])
             
             image_a = np.asarray(image)
             cropped_image = image_a[max(ymin-20,0):min(ymax+20,height), max(xmin-20,0):min(xmax+20,width), :]
@@ -138,8 +139,14 @@ class TLClassifier(object):
             light_color = self.get_light_classification(image_resized, 32, 32, 3)
 
             if light_color == 0:
-                return TrafficLight.RED             
-
+                return TrafficLight.RED
+            elif light_color == 1:
+                return TrafficLight.YELLOW
+            elif light_color == 2:
+                return TrafficLight.GREEN
+            else:
+                return TrafficLight.UNKNOWN
+            
         return TrafficLight.UNKNOWN
     
 
@@ -148,10 +155,10 @@ class TLClassifier(object):
 
 
     def get_light_classification(self, image, height, width, channels):
-        predictions = self.classifier.predict(image.reshape((1, height, width, channels)))
-        color =  predictions[0].tolist().index(np.max(predictions[0]))
-        
-        return color
+        with self.graph.as_default():
+            predictions = self.classifier.predict(image.reshape((1, height, width, channels)))
+            color =  predictions[0].tolist().index(np.max(predictions[0]))
+            return color
 
     ################# Utils ########################    
 
@@ -163,9 +170,9 @@ class TLClassifier(object):
         This converts it back to the original coordinate based on the image size.
         """
         box_coords = np.zeros_like(boxes)    
-        box_coords[:, 0] = boxes[:, 0] * height
-        box_coords[:, 1] = boxes[:, 1] * width
-        box_coords[:, 2] = boxes[:, 2] * height
-        box_coords[:, 3] = boxes[:, 3] * width
+        box_coords[0] = boxes[0] * height
+        box_coords[1] = boxes[1] * width
+        box_coords[2] = boxes[2] * height
+        box_coords[3] = boxes[3] * width
 
         return box_coords        

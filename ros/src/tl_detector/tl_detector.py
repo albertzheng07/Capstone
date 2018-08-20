@@ -152,7 +152,7 @@ class TLDetector(object):
 
         return closest_idx
 
-    def get_light_state(self, light, debug):
+    def get_light_state(self, light):
         """Determines the current color of the traffic light
 
         Args:
@@ -189,15 +189,27 @@ class TLDetector(object):
 
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
-        # rospy.loginfo('pose x = %f, pose y = %f', self.pose.pose.position.x, self.pose.pose.position.y)
-        # rospy.loginfo('pose = %d, waypoints = %d', (self.pose != None), (self.base_waypoints != None))
-
+        #rospy.loginfo('pose x = %f, pose y = %f', self.pose.pose.position.x, self.pose.pose.position.y)
+        #rospy.loginfo('pose = %d, waypoints = %d', (self.pose != None), (self.base_waypoints != None))
+        #rospy.loginfo("Test") 
+#         if self.pose is None:        
+#             rospy.loginfo("self.pose None")
+#         if self.base_waypoints is None:             
+#             rospy.loginfo("self.base_waypoints None")                
+        state = self.get_light_state(None) 
+        rospy.loginfo("Color = %d", state)
+        
         if ( self.pose != None and self.base_waypoints != None ):
             car_wp_idx = self.get_closest_waypoint([self.pose.pose.position.x, self.pose.pose.position.y])
 
             diff = len(self.base_waypoints.waypoints)
+            #rospy.loginfo("Test") 
 
+            #print(self.lights)
+            
             for i, light in enumerate(self.lights):
+                state = self.get_light_state(light, self.use_ground_truth_data) 
+                rospy.loginfo("Color = %d", state)                
                 line = stop_line_positions[i]
                 temp_wp_idx = self.get_closest_waypoint(line)
                 if temp_wp_idx:
@@ -210,10 +222,14 @@ class TLDetector(object):
 
             #find the closest visible traffic light (if one exists)
             if closest_light:
-                state = self.get_light_state(light, self.use_ground_truth_data)
+                state = self.get_light_state(light)
                 return line_wp_idx, state
+            
+	        if state == 0:
+		        return 10, state
 
         return -1, TrafficLight.UNKNOWN
+
 
 if __name__ == '__main__':
     try:
