@@ -109,7 +109,7 @@ class TLDetector(object):
         used.
         '''
                           
-        if self.classify_count % 5 == 0:
+        if self.classify_count % 2 == 0:
             light_wp, state = self.process_traffic_lights()
   
             if self.state != state:
