@@ -102,14 +102,14 @@ class TLDetector(object):
         
         self.classify_count += 1
      
-      '''
+ 	'''
         Publish upcoming red lights at camera frequency.
         Each predicted state has to occur `STATE_COUNT_THRESHOLD` number
         of times till we start using it. Otherwise the previous stable state is
         used.
         '''
                           
-        if self.classify_count % 5 == 0:
+        if self.classify_count % 4 == 0:
             light_wp, state = self.process_traffic_lights()
   
             if self.state != state:
@@ -175,8 +175,13 @@ class TLDetector(object):
             if(not self.has_image):
                 self.prev_light_loc = None
                 return False
-    
-            cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+            
+            image_type = "bgr8"
+            
+            if not(self.is_site):
+                image_type = "rgb8"               
+            
+            cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, image_type)
     
             #Get classification
             return self.light_classifier.get_classification(cv_image)            
@@ -205,7 +210,6 @@ class TLDetector(object):
             diff = len(self.base_waypoints.waypoints)
             
             for i, light in enumerate(self.lights):
-                state = self.get_light_state(light, self.use_ground_truth_data) 
                 line = stop_line_positions[i]
                 temp_wp_idx = self.get_closest_waypoint(line)
                 if temp_wp_idx:
