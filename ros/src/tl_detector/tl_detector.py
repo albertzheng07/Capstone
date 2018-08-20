@@ -109,7 +109,7 @@ class TLDetector(object):
         used.
         '''
                           
-        if self.classify_count % 4 == 0:
+        if self.classify_count % 5 == 0:
             light_wp, state = self.process_traffic_lights()
   
             if self.state != state:
@@ -176,7 +176,12 @@ class TLDetector(object):
                 self.prev_light_loc = None
                 return False
                         
-            cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+	    img_type = "bgr8"
+
+	    if not(self.is_site):
+		img_type = "rgb8"
+
+            cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, img_type)
     
             #Get classification
             return self.light_classifier.get_classification(cv_image)            
@@ -196,8 +201,8 @@ class TLDetector(object):
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
                
-        state = self.get_light_state(None) 
-        rospy.loginfo("Color = %d", state)
+        #state = self.get_light_state(None) 
+        #rospy.loginfo("Color = %d", state)
         
         if ( self.pose != None and self.base_waypoints != None ):
             car_wp_idx = self.get_closest_waypoint([self.pose.pose.position.x, self.pose.pose.position.y])
