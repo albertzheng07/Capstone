@@ -83,7 +83,9 @@ class TLClassifier(object):
             xmax = int(box_coords[3])
             
             image_a = np.asarray(image)
-            cropped_image = image_a[max(ymin-20,0):min(ymax+20,height), max(xmin-20,0):min(xmax+20,width), :]
+            #cropped_image = image_a[max(ymin-20,0):min(ymax+20,height), max(xmin-20,0):min(xmax+20,width), :]
+            cropped_image = image_a[max(ymin,0):min(ymax,height), max(xmin,0):min(xmax,width), :]
+
             image_resized = cv2.resize(cropped_image, (32, 32))
 
             image_resized = image_resized/255.0-0.5
