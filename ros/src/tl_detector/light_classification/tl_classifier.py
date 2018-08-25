@@ -23,7 +23,7 @@ class TLDetection():
         n = len(classes)
         idxs = []
         for i in range(n):
-            if scores[i] >= min_score and classes[m] == 10: # traffic light class == 10
+            if scores[i] >= min_score and classes[i] == 10: # traffic light class == 10
                 idxs.append(i)
     
         filt_boxes = boxes[idxs, ...]
