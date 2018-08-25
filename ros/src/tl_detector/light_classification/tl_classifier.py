@@ -98,19 +98,6 @@ class TLClassifier(object):
         return TrafficLight.UNKNOWN
     
 
-    def get_traffic_lights(self, image):
-        return self.detection.run(image)
-
-
-    def get_light_classification(self, image, height, width, channels):
-        with self.graph.as_default():
-            predictions = self.classifier.predict(image.reshape((1, height, width, channels)))
-            color =  predictions[0].tolist().index(np.max(predictions[0]))
-            return color
-
-    ################# Utils ########################    
-
-
     def to_image_coords(self, boxes, height, width):
         """
             Convert coordinates based on the image size.
@@ -121,4 +108,14 @@ class TLClassifier(object):
         box_coords[2] = boxes[2] * height
         box_coords[3] = boxes[3] * width
 
-        return box_coords        
+        return box_coords 
+
+    def get_traffic_lights(self, image):
+        return self.detection.run(image)
+
+
+    def get_light_classification(self, image, height, width, channels):
+        with self.graph.as_default():
+            predictions = self.classifier.predict(image.reshape((1, height, width, channels)))
+            color =  predictions[0].tolist().index(np.max(predictions[0]))
+            return color       
