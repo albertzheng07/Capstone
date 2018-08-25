@@ -112,7 +112,7 @@ class TLDetector(object):
         num_images_classify = 1
 
         if not(self.is_site):
-           num_images_classify = 5 
+           num_images_classify = 8 
                           
         if self.classify_count % num_images_classify == 0:
             light_wp, state = self.process_traffic_lights()
