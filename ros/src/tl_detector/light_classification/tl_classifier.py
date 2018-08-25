@@ -8,10 +8,10 @@ from PIL import ImageColor
 import numpy as np
 from keras.models import load_model
 
-class GraphDetection():
+class TLDetection():
 
     def __init__(self):
-        self.detection_graph = self.load_graph('light_classification/model_detection.pb')        
+        self.detection_graph = self.load_graph('light_classification/model_detect.pb')        
         self.image_tensor = self.detection_graph.get_tensor_by_name('image_tensor:0')
         self.detection_boxes = self.detection_graph.get_tensor_by_name('detection_boxes:0')
         self.detection_scores = self.detection_graph.get_tensor_by_name('detection_scores:0')
@@ -19,34 +19,30 @@ class GraphDetection():
         self.detection_number = self.detection_graph.get_tensor_by_name('num_detections:0')
         self.sess = tf.Session(graph=self.detection_graph)
 
-    def run(self, image):
+    def filter_boxes(self, min_score, boxes, scores, classes):
+        n = len(classes)
+        idxs = []
+        for i in range(n):
+            if scores[i] >= min_score and classes[m] == 10: # traffic light class == 10
+                idxs.append(i)
+    
+        filt_boxes = boxes[idxs, ...]
+        filt_scores = scores[idxs, ...]
+        filt_classes = classes[idxs, ...]
+        return filt_boxes, filt_scores, filt_classes
 
-        # Actual detection.
+    def run(self, image):
+        # Run detection
         (boxes, scores, classes, num) = self.sess.run([self.detection_boxes, self.detection_scores, self.detection_classes, self.detection_number], 
                                         feed_dict={self.image_tensor: image})
-        # Remove unnecessary dimensions
         boxes = np.squeeze(boxes)
         scores = np.squeeze(scores)
         classes = np.squeeze(classes)
 
-        # Filter boxes with a confidence score less than `CONFIDENCE_CUTOFF`
+        # Filter boxes with only traffic lights
         return self.filter_boxes(0.05, boxes, scores, classes)
 
-    def filter_boxes(self, min_score, boxes, scores, classes):
-        """Return boxes with a confidence >= `min_score` and class == 10 (traffic light)""" 
-        n = len(classes)
-        idxs = []
-        for i in range(n):
-            if scores[i] >= min_score and classes[i] == 10:
-                idxs.append(i)
-    
-        filtered_boxes = boxes[idxs, ...]
-        filtered_scores = scores[idxs, ...]
-        filtered_classes = classes[idxs, ...]
-        return filtered_boxes, filtered_scores, filtered_classes
-
     def load_graph(self, graph_file):
-        """Loads a frozen inference graph"""
         graph = tf.Graph()
         with graph.as_default():
             od_graph_def = tf.GraphDef()
@@ -58,22 +54,22 @@ class GraphDetection():
 
 class TLClassifier(object):
     def __init__(self, is_site):
-        if is_site:
+        if is_site: # load either classifier for carla or for hte sim
             self.classifier = load_model('light_classification/classifier_carla.h5')
         else:    
             self.classifier = load_model('light_classification/classifier_sim.h5')
         self.graph = tf.get_default_graph()            
-        self.detection = GraphDetection()     
+        self.detection = TLDetection()     
         
     def get_classification(self, image):
 
         img_expanded = np.expand_dims(np.asarray(image, dtype=np.uint8), 0) 
         
-        # Get boxes for traffic lights
-        boxes, scores, classes = self.get_boxes_for_traffic_lights(img_expanded)
+        # Get detection boxes, scores and classes for traffic lights
+        boxes, scores, classes = self.get_traffic_lights(img_expanded)
 
-        if len(scores) > 0:
-            max_ind = scores.tolist().index(max(scores))
+        if len(scores) > 0: # check that a detection was made
+            max_ind = scores.tolist().index(max(scores)) # get the best prediction
             height, width, channels = image.shape       
             box_coords = self.to_image_coords(boxes[max_ind], height, width)
 
@@ -102,7 +98,7 @@ class TLClassifier(object):
         return TrafficLight.UNKNOWN
     
 
-    def get_boxes_for_traffic_lights(self, image):
+    def get_traffic_lights(self, image):
         return self.detection.run(image)
 
 
@@ -117,9 +113,7 @@ class TLClassifier(object):
 
     def to_image_coords(self, boxes, height, width):
         """
-        The original box coordinate output is normalized, i.e [0, 1].
-    
-        This converts it back to the original coordinate based on the image size.
+            Convert coordinates based on the image size.
         """
         box_coords = np.zeros_like(boxes)    
         box_coords[0] = boxes[0] * height
