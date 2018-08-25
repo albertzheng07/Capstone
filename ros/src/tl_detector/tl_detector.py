@@ -108,8 +108,13 @@ class TLDetector(object):
         of times till we start using it. Otherwise the previous stable state is
         used.
         '''
+
+        is_site = 1
+
+        if not(self.is_site):
+           num_images_classify = 20 
                           
-        if self.classify_count % 10 == 0:
+        if self.classify_count % num_images_classify == 0:
             light_wp, state = self.process_traffic_lights()
   
             if self.state != state:
