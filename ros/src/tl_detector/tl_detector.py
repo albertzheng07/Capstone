@@ -109,7 +109,7 @@ class TLDetector(object):
         used.
         '''
 
-        is_site = 1
+        num_images_classify = 1
 
         if not(self.is_site):
            num_images_classify = 5 
